@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-''' Linear Trend Component
+"""Linear Trend Component
 
 This module contains the class for a linear trend with respect to time
 
 Author: Bennet Meyers
-'''
+"""
 
 import cvxpy as cvx
 import numpy as np
@@ -16,9 +16,7 @@ class LinearTrend(Component):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # self.z = cvx.Variable(2)
-        self._internal_constraints = [
-            lambda x, T, p: cvx.diff(x, k=2) == 0
-        ]
+        self._internal_constraints = [lambda x, T, p: cvx.diff(x, k=2) == 0]
         return
 
     @property
@@ -48,10 +46,9 @@ class LinearTrend(Component):
             c = np.zeros_like(v)
             c[0] = 1
             C = c.reshape((1, -1)) @ A
-            temp_mat = np.block([
-                [2 * A_tilde.T @ A_tilde, C.T],
-                [C, np.atleast_2d([0])]
-            ])
+            temp_mat = np.block(
+                [[2 * A_tilde.T @ A_tilde, C.T], [C, np.atleast_2d([0])]]
+            )
             v_tilde = np.r_[2 * A_tilde.T @ v_tilde, [self.first_val]]
             A_tilde = temp_mat
         x, _, _, _ = np.linalg.lstsq(A_tilde, v_tilde, rcond=None)

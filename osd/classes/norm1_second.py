@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-''' Smooth Component (1)
+"""Smooth Component (1)
 
 This module contains the class for the convex heuristic for a piecewise linear
 function. A piecewise constant function has a sparse second-order difference;
@@ -14,7 +14,7 @@ This is an extension of the concept of Total Variation filtering, applied to the
 differences of a discrete signal, rather than the values.
 
 Author: Bennet Meyers
-'''
+"""
 
 import cvxpy as cvx
 import osqp
@@ -27,10 +27,12 @@ from osd.classes.component import Component
 from osd.utilities import compose
 from osd.masking import make_masked_identity_matrix
 
+
 class SparseSecondDiffConvex(Component):
 
-    def __init__(self, internal_scale=1., prox_polish=False,
-                 max_bp=None, solver=None, **kwargs):
+    def __init__(
+        self, internal_scale=1.0, prox_polish=False, max_bp=None, solver=None, **kwargs
+    ):
         super().__init__(**kwargs)
         self._prox_prob = None
         self._rho_over_lambda = None
@@ -43,7 +45,7 @@ class SparseSecondDiffConvex(Component):
         return
 
     def make_graph_form(self, T, p):
-        return 
+        return
 
     @property
     def is_convex(self):
@@ -100,8 +102,7 @@ class SparseSecondDiffConvex(Component):
     #     else:
     #         return out
 
-    def prox_op(self, v, weight, rho, use_set=None, verbose=False,
-                prox_counts=None):
+    def prox_op(self, v, weight, rho, use_set=None, verbose=False, prox_counts=None):
         if use_set is None:
             use_set = np.ones_like(v, dtype=bool)
         problem = self._prox_prob
@@ -112,13 +113,12 @@ class SparseSecondDiffConvex(Component):
             set_change = True
         if problem is None or set_change:
             x = cvx.Variable(len(v))
-            Mv = cvx.Parameter(np.sum(use_set), value=v[use_set], name='Mv')
-            w = cvx.Parameter(value=weight, name='weight', nonneg=True)
-            r = cvx.Parameter(value=rho, name='rho', nonneg=True)
+            Mv = cvx.Parameter(np.sum(use_set), value=v[use_set], name="Mv")
+            w = cvx.Parameter(value=weight, name="weight", nonneg=True)
+            r = cvx.Parameter(value=rho, name="rho", nonneg=True)
             objective = cvx.Minimize(
-                w * cvx.norm1(ic * cvx.diff(x, k=2)) + r / 2 * cvx.sum_squares(
-                    x[use_set] - Mv
-                )
+                w * cvx.norm1(ic * cvx.diff(x, k=2))
+                + r / 2 * cvx.sum_squares(x[use_set] - Mv)
             )
             c = []
             if self.vmin is not None:
@@ -138,15 +138,16 @@ class SparseSecondDiffConvex(Component):
             self._last_set = use_set
         else:
             params = problem.param_dict
-            params['Mv'].value = v[use_set]
-            if ~np.isclose(weight, params['weight'].value, atol=1e-3):
-                params['weight'].value = weight
-            if ~np.isclose(rho, params['rho'].value, atol=1e-3):
-                params['rho'].value = rho
+            params["Mv"].value = v[use_set]
+            if ~np.isclose(weight, params["weight"].value, atol=1e-3):
+                params["weight"].value = weight
+            if ~np.isclose(rho, params["rho"].value, atol=1e-3):
+                params["rho"].value = rho
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             problem.solve(solver=self._solver)
         return problem.variables()[0].value
+
 
 def make_P(len_x, rho_over_lambda, use_set=None):
     len_r = len_x - 2
@@ -191,11 +192,7 @@ def make_A(len_x, internal_scale=1, use_set=None):
         B22 = -1 * sp.eye(len_z)
     else:
         B22 = -1 * make_masked_identity_matrix(use_set)
-    A = sp.bmat([
-        [B00, B01, None],
-        [B10, B11, None],
-        [B20, None, B22]
-    ])
+    A = sp.bmat([[B00, B01, None], [B10, B11, None], [B20, None, B22]])
     return A.tocsc()
 
 
@@ -215,13 +212,16 @@ def make_all(v, rho_over_lambda, internal_scale=1, use_set=None):
     l, u = make_lu(v, len_x)
     return P, q, A, l, u
 
+
 def fit_pwl(x, mask, breakpoints):
     if mask is None:
         mask = np.ones_like(x, dtype=bool)
     breakpoints = np.atleast_1d(breakpoints)
     h0 = np.ones(len(x))
     h1 = np.arange(len(x))
-    hns = np.vstack([np.clip(np.arange(len(x)) - bp, 0, np.inf) for bp in breakpoints]).T
+    hns = np.vstack(
+        [np.clip(np.arange(len(x)) - bp, 0, np.inf) for bp in breakpoints]
+    ).T
     B = np.c_[np.c_[h0, h1], hns]
     x_tilde = x[mask]
     B_tilde = B[mask]

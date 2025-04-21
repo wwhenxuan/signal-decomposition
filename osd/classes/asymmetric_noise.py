@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-''' Asymmetric Noise Component
+"""Asymmetric Noise Component
 
 This module contains the class noise generated from an asymmetric Laplace
 distribution (ALD): https://en.wikipedia.org/wiki/Asymmetric_Laplace_distribution
@@ -19,18 +19,19 @@ average of the residual distribution, which is appropriate for Gaussian noise.
 
 
 Author: Bennet Meyers
-'''
+"""
 
 import cvxpy as cvx
 import numpy as np
 from osd.classes.component import Component
 from osd.utilities import compose
 
+
 class AsymmetricNoise(Component):
 
     def __init__(self, tau=0.85, **kwargs):
         super().__init__(tau=tau, **kwargs)
-        self._tau  = tau
+        self._tau = tau
         return
 
     @property
@@ -38,14 +39,14 @@ class AsymmetricNoise(Component):
         return True
 
     def _get_cost(self):
-        tau = self.parameters['tau']
+        tau = self.parameters["tau"]
         quant = lambda x: 0.5 * cvx.abs(x) + (tau - 0.5) * x
         cost = compose(cvx.sum, quant)
         return cost
 
     def _get_params(self):
         tau = cvx.Parameter(nonneg=True)
-        return {'tau': tau}
+        return {"tau": tau}
 
     def prox_op(self, v, weight, rho, use_set=None, prox_weights=None):
         kappa = weight / (2 * rho)

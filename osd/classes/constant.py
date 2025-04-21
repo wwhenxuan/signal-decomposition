@@ -1,9 +1,9 @@
-''' Constant Component
+"""Constant Component
 
 This module contains the class for a constant signal
 
 Author: Bennet Meyers
-'''
+"""
 
 import numpy as np
 import cvxpy as cvx
@@ -11,12 +11,11 @@ from functools import partial
 from osd.classes.component import Component
 import warnings
 
+
 class Constant(Component):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._internal_constraints = [
-            lambda x, T, p: cvx.diff(x, k=1) == 0
-        ]
+        self._internal_constraints = [lambda x, T, p: cvx.diff(x, k=1) == 0]
         return
 
     @property
@@ -34,16 +33,16 @@ class Constant(Component):
             avg = np.average(v[use_set])
         return np.ones_like(v) * avg
 
+
 class ConstantChunks(Component):
     def __init__(self, length, use_set=None, **kwargs):
         super().__init__(**kwargs)
-        self.length=length
+        self.length = length
         if use_set is not None and len(use_set.shape) > 1:
             self.use_set = np.all(use_set, axis=1)
         else:
             self.use_set = use_set
-        self._internal_constraints = partial(make_constraints,
-                                             length=self.length)
+        self._internal_constraints = partial(make_constraints, length=self.length)
         return
 
     @property
@@ -67,19 +66,19 @@ class ConstantChunks(Component):
             pad = self.length - T % self.length
             temp = np.r_[temp, [np.nan] * pad]
         if prox_weights is not None:
-            pc  = prox_weights.copy()
+            pc = prox_weights.copy()
             if len(pc) < len(temp):
                 pc = np.r_[pc, [0] * pad]
                 temp *= np.r_[prox_weights, [0] * pad]
             else:
                 temp *= prox_weights
-            pc = pc.reshape((self.length, num_chunks), order='F')
+            pc = pc.reshape((self.length, num_chunks), order="F")
             col_counts = np.sum(pc, axis=0)
-        temp = temp.reshape((self.length, num_chunks), order='F')
+        temp = temp.reshape((self.length, num_chunks), order="F")
         # print(temp.shape)
         nrows = temp.shape[0]
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             avgs = np.nanmean(temp, axis=0)
         avgs[np.isnan(avgs)] = 0
         if prox_weights is not None:
@@ -87,9 +86,10 @@ class ConstantChunks(Component):
             avgs *= np.sum(~np.isnan(temp), axis=0)
             avgs /= col_counts
         out = np.tile(avgs, (nrows, True))
-        out = out.ravel(order='F')
-        out = out[:len(v)]
+        out = out.ravel(order="F")
+        out = out[: len(v)]
         return out
+
 
 def make_constraints(x, T, K, length=None):
     num_chunks = T // length
@@ -97,5 +97,5 @@ def make_constraints(x, T, K, length=None):
         num_chunks += 1
     constraints = []
     for i in range(num_chunks):
-        constraints.append(cvx.diff(x[i*length:(i+1)*length], k=1) == 0)
+        constraints.append(cvx.diff(x[i * length : (i + 1) * length], k=1) == 0)
     return constraints

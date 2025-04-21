@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-''' Laplace Noise Component
+"""Laplace Noise Component
 
 This module contains the class for Laplace noise, or a noise term modeled
 as a random variable drawn from a Laplace distribution. The Laplace distribution
@@ -11,7 +11,7 @@ The cost function for Laplace noise is simply the sum of the absolute values,
 or the L1 norm.
 
 Author: Bennet Meyers
-'''
+"""
 
 import cvxpy as cvx
 import scipy.sparse as sp
@@ -20,9 +20,10 @@ from osd.utilities import compose
 import numpy as np
 import warnings
 
+
 class Sparse(Component):
 
-    def __init__(self,chunk_size=None, **kwargs):
+    def __init__(self, chunk_size=None, **kwargs):
         super().__init__(**kwargs)
         self.chunk_size = chunk_size
         if chunk_size is not None:
@@ -30,15 +31,15 @@ class Sparse(Component):
             self._rho_over_lambda = None
             self._it = 0
             self.internal_scale = 1
+
             def make_const(x, T, p):
                 nc = (T - 1) // chunk_size + 1
                 z = cvx.Variable(nc)
                 A = np.zeros((nc, T))
                 for i in range(nc):
-                    A[
-                        i, i * chunk_size:(i + 1) * chunk_size
-                    ] = 1
+                    A[i, i * chunk_size : (i + 1) * chunk_size] = 1
                 return A.T @ z == x
+
             self._internal_constraints = [make_const]
         return
 
@@ -73,7 +74,7 @@ class Sparse(Component):
             else:
                 v_bar = np.r_[v_temp, np.nan * np.ones(cs - remainder)]
             with warnings.catch_warnings():
-                warnings.simplefilter('ignore')
+                warnings.simplefilter("ignore")
                 nan_counts = np.sum(np.isnan(v_bar.reshape((cn, cs))), axis=1)
                 v_bar = np.nanmean(v_bar.reshape((cn, cs)), axis=1)
 
@@ -84,8 +85,8 @@ class Sparse(Component):
                 v_bar[np.isnan(v_bar)] = 0
 
             kappa = np.zeros(cn)
-            kappa[nan_counts != cs] =(
-                weight / (rho * (1 - nan_counts[nan_counts != cs] / cs))
+            kappa[nan_counts != cs] = weight / (
+                rho * (1 - nan_counts[nan_counts != cs] / cs)
             )
 
             # kappa = weight / rho * np.ones(cn)
@@ -93,11 +94,11 @@ class Sparse(Component):
             t1 = v_bar - kappa
             t2 = -v_bar - kappa
 
-            x = np.tile(np.clip(t1, 0, np.inf) - np.clip(t2, 0, np.inf),
-                        (cs, 1)).ravel(order='F')
-            x = x[:len(v)]
+            x = np.tile(np.clip(t1, 0, np.inf) - np.clip(t2, 0, np.inf), (cs, 1)).ravel(
+                order="F"
+            )
+            x = x[: len(v)]
         return x
-
 
 
 def make_P(len_x, chunk_size, rho_over_lambda):
@@ -114,8 +115,7 @@ def make_q(len_x, chunk_size):
     len_r = (len_x - 1) // chunk_size + 1
     len_z = len_x
     len_s = (len_x - 1) // chunk_size + 1
-    return np.r_[np.zeros(len_x), np.ones(len_r), np.zeros(len_z),
-                 np.zeros(len_s)]
+    return np.r_[np.zeros(len_x), np.ones(len_r), np.zeros(len_z), np.zeros(len_s)]
 
 
 def make_A(len_x, chunk_size):
@@ -147,12 +147,14 @@ def make_A(len_x, chunk_size):
     # print(i, j, len_s, len_x)
     B33 = sp.coo_matrix((data, (i, j)), shape=(len_x, len_s))
 
-    A = sp.bmat([
-        [None, B01, None, B03],
-        [None, B11, None, B13],
-        [B20, None, B22, None],
-        [B30, None, None, B33]
-    ])
+    A = sp.bmat(
+        [
+            [None, B01, None, B03],
+            [None, B11, None, B13],
+            [B20, None, B22, None],
+            [B30, None, None, B33],
+        ]
+    )
     return A.tocsc()
 
 

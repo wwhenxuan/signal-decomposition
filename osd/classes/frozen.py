@@ -1,4 +1,4 @@
-''' Frozen Component Module
+"""Frozen Component Module
 
 This modules contains the class definition for a frozen component, or one in
 which the estimate has been set ahead of time. This is given by the cost
@@ -9,10 +9,11 @@ function
 It has the very simple proximal operator of always returning x_frozen, regardless
 of the input.
 
-'''
+"""
 
 import numpy as np
 from osd.classes.component import Component
+
 
 class Frozen(Component):
 
@@ -20,11 +21,11 @@ class Frozen(Component):
         super().__init__(**kwargs)
         self.x_frozen = x_frozen
         self.x_frozen_periodic = None
-        if 'period' in kwargs.keys():
+        if "period" in kwargs.keys():
             self.is_periodic = True
             self._internal_constraints = [
-                lambda x, T, p: x[self.period:] == x[:-self.period],
-                lambda x, T, p: x[:self.period] == self.x_frozen[:self.period]
+                lambda x, T, p: x[self.period :] == x[: -self.period],
+                lambda x, T, p: x[: self.period] == self.x_frozen[: self.period],
             ]
         else:
             self.is_periodic = False
@@ -52,9 +53,9 @@ class Frozen(Component):
             if T % length != 0:
                 num_chunks += 1
             if p == 1:
-                out = np.tile(self.x_frozen[:self.period], num_chunks)
+                out = np.tile(self.x_frozen[: self.period], num_chunks)
             else:
-                out = np.tile(self.x_frozen[:self.period], (num_chunks, 1))
+                out = np.tile(self.x_frozen[: self.period], (num_chunks, 1))
             out = out[:T]
             self.x_frozen_periodic = out
             return out

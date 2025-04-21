@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-''' Smooth Component (1)
+"""Smooth Component (1)
 
 This module contains the class for the convex heuristic for a piecewise constant
 function. A piecewise constant function has a sparse first-order difference;
@@ -14,7 +14,7 @@ This is also known as a Total Variation filter
     (https://en.wikipedia.org/wiki/Total_variation_denoising)
 
 Author: Bennet Meyers
-'''
+"""
 
 import numpy as np
 import scipy.sparse as sp
@@ -25,9 +25,10 @@ from osd.classes.component import Component
 from osd.utilities import compose
 from osd.classes.base_graph_class import GraphComponent
 
+
 class SparseFirstDiffConvex(Component):
 
-    def __init__(self, internal_scale=1., solver=None, **kwargs):
+    def __init__(self, internal_scale=1.0, solver=None, **kwargs):
         super().__init__(**kwargs)
         self._prox_prob = None
         self.internal_scale = internal_scale
@@ -44,8 +45,7 @@ class SparseFirstDiffConvex(Component):
         cost = compose(cvx.sum, cvx.abs, diff1)
         return cost
 
-    def prox_op(self, v, weight, rho, use_set=None, verbose=False,
-                prox_counts=None):
+    def prox_op(self, v, weight, rho, use_set=None, verbose=False, prox_counts=None):
         if use_set is None:
             use_set = np.ones_like(v, dtype=bool)
         problem = self._prox_prob
@@ -56,13 +56,12 @@ class SparseFirstDiffConvex(Component):
             set_change = True
         if problem is None or set_change:
             x = cvx.Variable(len(v))
-            Mv = cvx.Parameter(np.sum(use_set), value=v[use_set], name='Mv')
-            w = cvx.Parameter(value=weight, name='weight', nonneg=True)
-            r = cvx.Parameter(value=rho, name='rho', nonneg=True)
+            Mv = cvx.Parameter(np.sum(use_set), value=v[use_set], name="Mv")
+            w = cvx.Parameter(value=weight, name="weight", nonneg=True)
+            r = cvx.Parameter(value=rho, name="rho", nonneg=True)
             objective = cvx.Minimize(
-                w * cvx.norm1(ic * cvx.diff(x, k=1)) + r / 2 * cvx.sum_squares(
-                    x[use_set] - Mv
-                )
+                w * cvx.norm1(ic * cvx.diff(x, k=1))
+                + r / 2 * cvx.sum_squares(x[use_set] - Mv)
             )
             c = []
             if self.vmin is not None:
@@ -82,24 +81,29 @@ class SparseFirstDiffConvex(Component):
             self._last_set = use_set
         else:
             params = problem.param_dict
-            params['Mv'].value = v[use_set]
-            if ~np.isclose(weight, params['weight'].value, atol=1e-3):
-                params['weight'].value = weight
-            if ~np.isclose(rho, params['rho'].value, atol=1e-3):
-                params['rho'].value = rho
+            params["Mv"].value = v[use_set]
+            if ~np.isclose(weight, params["weight"].value, atol=1e-3):
+                params["weight"].value = weight
+            if ~np.isclose(rho, params["rho"].value, atol=1e-3):
+                params["rho"].value = rho
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             problem.solve(solver=self._solver)
         return problem.variables()[0].value
 
     def make_graph_form(self, T, p):
         gf = SparseFirstDiffConvexGraph(
-            self.weight, T, p,
-            vmin=self.vmin, vmax=self.vmax,
-            period=self.period, first_val=self.first_val
+            self.weight,
+            T,
+            p,
+            vmin=self.vmin,
+            vmax=self.vmax,
+            period=self.period,
+            first_val=self.first_val,
         )
         self._gf = gf
         return gf.make_dict()
+
 
 class SparseFirstDiffConvexGraph(GraphComponent):
     def __init__(self, *args, **kwargs):
@@ -110,9 +114,9 @@ class SparseFirstDiffConvexGraph(GraphComponent):
         self._z_size = self.x_size - 1
 
     def __make_gz(self):
-        self._gz = [{'f': 1,
-                     'args': None,
-                     'range': (self.x_size, self.x_size + self.z_size)}]
+        self._gz = [
+            {"f": 1, "args": None, "range": (self.x_size, self.x_size + self.z_size)}
+        ]
 
     def __make_A(self):
         T = self._T

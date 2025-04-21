@@ -1,4 +1,4 @@
-''' Abstract base graph-form class module
+"""Abstract base graph-form class module
 
 This module contains the abstract base class for graph-form component classes
 
@@ -15,12 +15,13 @@ is_bound:   g(x) = I(0 <= x <= 1)
 is_finite_set: g(x) = I(x ∈ S)
 
 Author: Bennet Meyers
-'''
+"""
 
 from abc import ABC, abstractmethod
 import numpy as np
 import scipy.sparse as sp
 import itertools as itt
+
 
 class GraphComponent(ABC):
     def __init__(self, weight=1, diff=0, **kwargs):
@@ -75,15 +76,15 @@ class GraphComponent(ABC):
 
     def make_dict(self):
         canonicalized = {
-            'Px': self._Px,
-            'Pz': self._Pz,
-            'q': self._q, #not currently used
-            'r': self._r, #not currently used
-            'A': self._A,
-            'B': self._B,
-            'c': self._c,
-            'gx': self._gx,
-            'gz': self._gz
+            "Px": self._Px,
+            "Pz": self._Pz,
+            "q": self._q,  # not currently used
+            "r": self._r,  # not currently used
+            "A": self._A,
+            "B": self._B,
+            "c": self._c,
+            "gx": self._gx,
+            "gz": self._gz,
         }
         return canonicalized
 
@@ -124,16 +125,14 @@ class GraphComponent(ABC):
             m4 = sp.eye(m=T - 3, n=T, k=3)
             self._A = -m1 + 3 * m2 - 3 * m3 + m4
         else:
-            print('Differences higher than 3 not supported')
+            print("Differences higher than 3 not supported")
             raise Exception
-
 
     def _make_B(self):
         self._B = sp.eye(self._A.shape[0], self.z_size) * -1
 
     def _make_c(self):
         self._c = np.zeros(self._B.shape[0])
-
 
     @property
     def weight(self):

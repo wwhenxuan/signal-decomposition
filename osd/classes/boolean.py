@@ -1,13 +1,14 @@
-''' Boolean Signal
+"""Boolean Signal
 
 This module contains the class for Boolean signal
 
 
 Author: Bennet Meyers
-'''
+"""
 
 import numpy as np
 from osd.classes.component import Component
+
 
 class Boolean(Component):
 

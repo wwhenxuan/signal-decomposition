@@ -64,9 +64,7 @@ class SumAbs(GraphComponent):
             self._B = self.weighting_mat
 
     def _make_g(self, size):
-        g = [{'g': 'abs',
-              'args': {'weight': self.weight},
-              'range': (0, size)}]
+        g = [{"g": "abs", "args": {"weight": self.weight}, "range": (0, size)}]
         return g
 
 
@@ -77,9 +75,13 @@ class SumHuber(GraphComponent):
         return
 
     def _make_g(self, size):
-        g = [{'g': 'huber',
-              'args': {'weight': self.weight, 'M': self._M},
-              'range': (0, size)}]
+        g = [
+            {
+                "g": "huber",
+                "args": {"weight": self.weight, "M": self._M},
+                "range": (0, size),
+            }
+        ]
         return g
 
 
@@ -90,9 +92,13 @@ class SumQuantile(GraphComponent):
         return
 
     def _make_g(self, size):
-        g = [{'g': 'quantile',
-              'args': {'weight': self.weight, 'tau': self.tau},
-              'range': (0, size)}]
+        g = [
+            {
+                "g": "quantile",
+                "args": {"weight": self.weight, "tau": self.tau},
+                "range": (0, size),
+            }
+        ]
         return g
 
 
@@ -102,7 +108,5 @@ class SumCard(GraphComponent):
         return
 
     def _make_g(self, size):
-        g = [{'g': 'card',
-              'args': {'weight': self.weight},
-              'range': (0, size)}]
+        g = [{"g": "card", "args": {"weight": self.weight}, "range": (0, size)}]
         return g

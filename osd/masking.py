@@ -1,22 +1,26 @@
-''' Masking Module
+"""Masking Module
 
 This module contains utility functions working with known set masks
 
 
 Author: Bennet Meyers
-'''
+"""
 
 import scipy.sparse as sp
 import numpy as np
 
-class Mask():
+
+class Mask:
     def __init__(self, use_set):
         us = np.atleast_1d(use_set)
         if len(us.shape) == 1:
             p = 1
             T = len(us)
         else:
-            T, p, = us.shape
+            (
+                T,
+                p,
+            ) = us.shape
         self.use_set = us
         self.T = T
         self.p = p
@@ -29,7 +33,7 @@ class Mask():
         if self.p == 1:
             vi = v
         else:
-            vi = v.ravel(order='F')
+            vi = v.ravel(order="F")
         out = self.M @ vi
         return out
 
@@ -37,18 +41,18 @@ class Mask():
         out = self.M_star @ v
         if self.p != 1:
             T, p = self.T, self.p
-            out = out.reshape((T, p), order='F')
+            out = out.reshape((T, p), order="F")
         return out
 
     def zero_fill(self, v):
         if self.p == 1:
             vi = v
         else:
-            vi = v.ravel(order='F')
+            vi = v.ravel(order="F")
         out = self.MstM @ vi
         if self.p != 1:
             T, p = self.T, self.p
-            out = out.reshape((T, p), order='F')
+            out = out.reshape((T, p), order="F")
         return out
 
 
@@ -56,7 +60,7 @@ def make_mask_matrix(use_set):
     if len(use_set.shape) == 1:
         us = np.copy(use_set)
     else:
-        us = np.ravel(use_set, order='F')
+        us = np.ravel(use_set, order="F")
     n = len(us)
     K = np.sum(use_set)
     data = np.ones(K)
@@ -66,11 +70,12 @@ def make_mask_matrix(use_set):
     M = sp.coo_matrix((data, (i, j)), shape=(K, n))
     return M
 
+
 def make_inverse_mask_matrix(use_set):
     if len(use_set.shape) == 1:
         us = np.copy(use_set)
     else:
-        us = np.ravel(use_set, order='F')
+        us = np.ravel(use_set, order="F")
     n = len(us)
     K = np.sum(use_set)
     data = np.ones(K)
@@ -80,11 +85,12 @@ def make_inverse_mask_matrix(use_set):
     M = sp.coo_matrix((data, (i, j)), shape=(n, K))
     return M
 
+
 def make_masked_identity_matrix(use_set):
     if len(use_set.shape) == 1:
         us = np.copy(use_set)
     else:
-        us = np.ravel(use_set, order='F')
+        us = np.ravel(use_set, order="F")
     n = len(us)
     K = np.sum(use_set)
     data = np.ones(K)
@@ -92,6 +98,7 @@ def make_masked_identity_matrix(use_set):
     i = i[us]
     M = sp.coo_matrix((data, (i, i)), shape=(n, n))
     return M
+
 
 def fill_forward(v, use_set):
     if len(v.shape) == 1:
@@ -105,6 +112,7 @@ def fill_forward(v, use_set):
     else:
         out = v[idx, np.arange(idx.shape[1])]
     return out
+
 
 def fill_backward(v, use_set):
     v_temp = v[::-1]

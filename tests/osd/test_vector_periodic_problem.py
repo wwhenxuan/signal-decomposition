@@ -2,16 +2,13 @@ import unittest
 from pathlib import Path
 import numpy as np
 from osd import Problem
-from osd.classes import (
-    MeanSquareSmall,
-    TimeSmoothPeriodicEntryClose,
-    LinearTrend
-)
+from osd.classes import MeanSquareSmall, TimeSmoothPeriodicEntryClose, LinearTrend
 from osd.classes.wrappers import make_columns_equal
 
 rms = lambda x: np.sqrt(np.average(np.power(x, 2)))
 
 VERBOSE = False
+
 
 class TestVectorPeriodicProblem(unittest.TestCase):
     def test_cvx(self):
@@ -25,12 +22,11 @@ class TestVectorPeriodicProblem(unittest.TestCase):
             make_columns_equal(LinearTrend)(first_val=0),
         ]
         problem = Problem(y, classes=classes)
-        problem.decompose(how='cvx', verbose=VERBOSE)
-        np.testing.assert_(np.isclose(problem.problem.value,
-                                      problem.objective_value))
+        problem.decompose(how="cvx", verbose=VERBOSE)
+        np.testing.assert_(np.isclose(problem.problem.value, problem.objective_value))
         np.testing.assert_(
             problem.objective_value <= 0.0167,
-            'actual value: {:.3e}'.format(problem.objective_value)
+            "actual value: {:.3e}".format(problem.objective_value),
         )
 
     def test_admm(self):
@@ -44,10 +40,10 @@ class TestVectorPeriodicProblem(unittest.TestCase):
             make_columns_equal(LinearTrend)(first_val=0),
         ]
         problem = Problem(y, classes=classes)
-        problem.decompose(how='admm', verbose=VERBOSE)
+        problem.decompose(how="admm", verbose=VERBOSE)
         np.testing.assert_(
             problem.objective_value <= 0.0167,
-            'actual value: {:.3e}'.format(problem.objective_value)
+            "actual value: {:.3e}".format(problem.objective_value),
         )
 
     def test_bcd(self):
@@ -61,20 +57,16 @@ class TestVectorPeriodicProblem(unittest.TestCase):
             make_columns_equal(LinearTrend)(first_val=0),
         ]
         problem = Problem(y, classes=classes)
-        problem.decompose(how='bcd', verbose=VERBOSE)
+        problem.decompose(how="bcd", verbose=VERBOSE)
         np.testing.assert_(
             problem.objective_value <= 0.0167,
-            'actual value: {:.3e}'.format(problem.objective_value)
+            "actual value: {:.3e}".format(problem.objective_value),
         )
 
 
 def make_data():
     filepath = Path(__file__).parent.parent
-    data_file_path = (
-            filepath
-            / "fixtures"
-            / "vector_smooth_periodic_low_var.txt"
-    )
+    data_file_path = filepath / "fixtures" / "vector_smooth_periodic_low_var.txt"
     with open(data_file_path) as file:
         data = np.loadtxt(file)
     T, p = data.shape

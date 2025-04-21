@@ -1,15 +1,16 @@
-''' Gaussian Noise Component
+"""Gaussian Noise Component
 
 This module contains the class for Gaussian Noise
 
 Author: Bennet Meyers
-'''
+"""
 
 import cvxpy as cvx
 import numpy as np
 import scipy.sparse as sp
 from osd.classes.component import Component
 from osd.classes.base_graph_class import GraphComponent
+
 
 class MeanSquareSmall(Component):
 
@@ -38,12 +39,17 @@ class MeanSquareSmall(Component):
 
     def make_graph_form(self, T, p):
         gf = MeanSquareSmallGraph(
-            self.weight, T, p,
-            vmin=self.vmin, vmax=self.vmax,
-            period=self.period, first_val=self.first_val
+            self.weight,
+            T,
+            p,
+            vmin=self.vmin,
+            vmax=self.vmax,
+            period=self.period,
+            first_val=self.first_val,
         )
         self._gf = gf
         return gf.make_dict()
+
 
 class MeanSquareSmallGraph(GraphComponent):
     def __init__(self, *args, **kwargs):
@@ -51,5 +57,5 @@ class MeanSquareSmallGraph(GraphComponent):
         return
 
     def __make_P(self):
-        self._Px = (self.weight/self.x_size) * sp.eye(self.x_size)
+        self._Px = (self.weight / self.x_size) * sp.eye(self.x_size)
         self._Pz = sp.dok_matrix(2 * (self.z_size))

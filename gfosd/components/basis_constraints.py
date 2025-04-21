@@ -23,7 +23,7 @@ class Basis(GraphComponent):
         # penalty can be None, an atom name (e.g. 'sum_square' or 'abs'), or PSD matrix (2D numpy array)
         self._penalty = penalty
         if isinstance(penalty, np.ndarray) or isinstance(penalty, sp.spmatrix):
-            self._penalty = 'matrix'
+            self._penalty = "matrix"
             self._pmat = penalty
         else:
             self._ndim = None
@@ -42,25 +42,33 @@ class Basis(GraphComponent):
             num_periods = int(np.ceil(self._T / basis_len))
             M = sp.vstack([self._basis] * num_periods)
             M = M.tocsr()
-            M = M[:self._T]
+            M = M[: self._T]
             self._basis = M
         self._B = self._basis * -1
 
     def _make_g(self, size):
-        if (self._penalty is None) or (self._penalty == 'sum_square') or (self._penalty == 'matrix'):
+        if (
+            (self._penalty is None)
+            or (self._penalty == "sum_square")
+            or (self._penalty == "matrix")
+        ):
             g = []
         else:
             # typically 'abs', 'huber', or 'quantile'
-            g = [{'g': self._penalty,
-                  'args': {'weight': self.weight},
-                  'range': (0, size)}]
+            g = [
+                {
+                    "g": self._penalty,
+                    "args": {"weight": self.weight},
+                    "range": (0, size),
+                }
+            ]
         return g
 
     def _make_P(self, size):
-        if self._penalty == 'matrix':
+        if self._penalty == "matrix":
             P = sp.dia_matrix(self._pmat)
             P = P.power(2)
-        elif np.all(self._penalty == 'sum_square'):
+        elif np.all(self._penalty == "sum_square"):
             P = self.weight * sp.eye(size)
         else:
             P = sp.dok_matrix(2 * (size,))
@@ -75,8 +83,18 @@ class Periodic(Basis):
 
 
 class Fourier(Basis):
-    def __init__(self, num_harmonics, length, periods, standing_wave=False, trend=False, max_cross_k=None,
-                 custom_basis=None, weight=1, **kwargs):
+    def __init__(
+        self,
+        num_harmonics,
+        length,
+        periods,
+        standing_wave=False,
+        trend=False,
+        max_cross_k=None,
+        custom_basis=None,
+        weight=1,
+        **kwargs,
+    ):
         _B = make_basis_matrix(
             num_harmonics,
             length,
@@ -84,7 +102,8 @@ class Fourier(Basis):
             standing_wave,
             trend,
             max_cross_k,
-            custom_basis)
+            custom_basis,
+        )
         _D = make_regularization_matrix(
             num_harmonics,
             weight,
@@ -92,6 +111,6 @@ class Fourier(Basis):
             standing_wave,
             trend,
             max_cross_k,
-            custom_basis
+            custom_basis,
         )
         super().__init__(basis=_B, penalty=_D, weight=weight, **kwargs)

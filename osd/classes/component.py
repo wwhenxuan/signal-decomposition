@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-''' Component abstract base class module
+"""Component abstract base class module
 
 This module contains the abstract base class for classes
 
 Author: Bennet Meyers
-'''
+"""
 
 from abc import ABC, abstractmethod
 import numpy as np
@@ -15,14 +15,14 @@ class Component(ABC):
     def __init__(self, **kwargs):
         self.__parameters = self._get_params()
         self.__cost = self._get_cost()
-        for key in ['vmin', 'vmax', 'vavg', 'period', 'first_val', 'weight']:
+        for key in ["vmin", "vmax", "vavg", "period", "first_val", "weight"]:
             if key in kwargs.keys():
-                setattr(self, '_' + key, kwargs[key])
+                setattr(self, "_" + key, kwargs[key])
                 del kwargs[key]
-            elif key == 'weight':
-                setattr(self, '_' + key, 1)
+            elif key == "weight":
+                setattr(self, "_" + key, 1)
             else:
-                setattr(self, '_' + key, None)
+                setattr(self, "_" + key, None)
         self.set_parameters(**kwargs)
         return
 
@@ -50,7 +50,7 @@ class Component(ABC):
 
     @abstractmethod
     def prox_op(self, v, weight, rho, use_set=None, prox_weights=None):
-        assert not hasattr(super(), 'prox_op')
+        assert not hasattr(super(), "prox_op")
         return NotImplementedError
 
     @property
@@ -71,7 +71,7 @@ class Component(ABC):
 
     @property
     def first_val(self):
-        return  self._first_val
+        return self._first_val
 
     @property
     def weight(self):
@@ -82,7 +82,7 @@ class Component(ABC):
 
     @property
     def internal_constraints(self):
-        if hasattr(self, '_internal_constraints'):
+        if hasattr(self, "_internal_constraints"):
             return self._internal_constraints
         else:
             return None
@@ -120,8 +120,7 @@ class Component(ABC):
                 c.extend(self.internal_constraints(x, T, p))
         return c
 
-    def cvx_prox(self, v, weight, rho, use_set=None, prox_weights=None,
-                 **cvx_args):
+    def cvx_prox(self, v, weight, rho, use_set=None, prox_weights=None, **cvx_args):
         """
 
         :param v:
@@ -145,14 +144,16 @@ class Component(ABC):
             r = rho
             if prox_weights is None:
                 cost = w * self.cost(x) + (r / 2) * cvx.sum_squares(
-                    x[use_set] - v[use_set])
+                    x[use_set] - v[use_set]
+                )
             else:
                 if len(prox_weights) != q:
                     pw = prox_weights[use_set]
                 else:
                     pw = prox_weights
                 cost = w * self.cost(x) + (r / 2) * cvx.sum_squares(
-                    cvx.multiply(pw, x[use_set] - v[use_set]))
+                    cvx.multiply(pw, x[use_set] - v[use_set])
+                )
             constraints = self.make_constraints(x)
             cvx_prox = cvx.Problem(cvx.Minimize(cost), constraints)
             cvx_prox.solve(**cvx_args)

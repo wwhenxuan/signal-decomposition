@@ -1,4 +1,4 @@
-''' Piecewise Constant Signal
+"""Piecewise Constant Signal
 
 This module contains the class for a piecewise constant signal with a known
 number of jumps. This class implements a dynamic programming algorithm for
@@ -11,7 +11,7 @@ environmental time series"
 https://link.springer.com/article/10.1007/s00477-005-0013-6
 
 Author: Bennet Meyers
-'''
+"""
 
 import scipy.sparse as sp
 import numpy as np
@@ -20,12 +20,13 @@ from osd.masking import (
     fill_forward,
     fill_backward,
     make_mask_matrix,
-    make_inverse_mask_matrix
+    make_inverse_mask_matrix,
 )
+
 
 class PiecewiseConstant(Component):
 
-    def __init__(self, num_segments=2, fill='forward', **kwargs):
+    def __init__(self, num_segments=2, fill="forward", **kwargs):
         super().__init__(**kwargs)
         self.num_segments = num_segments
         self.fill = fill
@@ -52,9 +53,9 @@ class PiecewiseConstant(Component):
         x_temp = dp_seg(v_temp, d, self.num_segments)
         x = self.prox_Mt @ x_temp
         if use_set is not None:
-            if self.fill == 'forward':
+            if self.fill == "forward":
                 x = fill_forward(x, use_set)
-            elif self.fill == 'backward':
+            elif self.fill == "backward":
                 x = fill_backward(x, use_set)
         return x
 
@@ -78,6 +79,7 @@ def error(x):
         d[a, a:] = np.multiply(SS_row - np.power(A_row, 2), A_bot)
     return d
 
+
 def dp_seg(x, d, c):
     """
     Dynamic programming algorithm for optimal partitioning of a signal into
@@ -93,7 +95,7 @@ def dp_seg(x, d, c):
     # Cost table
     cost = np.zeros((c, T))
     cost[:] = np.nan
-    cost[0, :] = d[0, :].toarray() # *one* segment (first index) has *zero* jumps
+    cost[0, :] = d[0, :].toarray()  # *one* segment (first index) has *zero* jumps
     # Index table
     z = np.zeros((c, T))
     z[:] = np.nan
@@ -104,21 +106,25 @@ def dp_seg(x, d, c):
         e[:] = np.nan
         for b_right in range(T):
             if b_right >= k:
-                e_entry = [cost[k - 1, b_left] + d[b_left + 1, b_right]
-                           if b_left >= k - 1
-                           else np.nan
-                           for b_left in range(b_right)]
+                e_entry = [
+                    (
+                        cost[k - 1, b_left] + d[b_left + 1, b_right]
+                        if b_left >= k - 1
+                        else np.nan
+                    )
+                    for b_left in range(b_right)
+                ]
                 e[b_right, :b_right] = e_entry
         slct = ~np.all(np.isnan(e), axis=-1)
         cost[k, slct] = np.nanmin(e[slct, :], axis=-1)
-        z[k, slct] = np.nanargmin(e[slct, :], axis=-1) + 1 # the optimal b_right
+        z[k, slct] = np.nanargmin(e[slct, :], axis=-1) + 1  # the optimal b_right
     # Backtracking
     # Change points are designated by the last index of the segment.
     # So, the last change point is always the final index
     segs = np.eye(c) * (T)
     for k1 in range(c):
-        for k2 in range(1, k1+1)[::-1]:
-            segs[k1, k2-1] = z[k2, int(segs[k1, k2] - 1)]
+        for k2 in range(1, k1 + 1)[::-1]:
+            segs[k1, k2 - 1] = z[k2, int(segs[k1, k2] - 1)]
     estimate = np.ones_like(x)
     bps = np.r_[[0], segs[-1]]
     for i in range(len(bps) - 1):
@@ -126,6 +132,7 @@ def dp_seg(x, d, c):
         b = int(bps[i + 1])
         estimate[a:b] = np.average(x[a:b])
     return estimate
+
 
 def calc_cost(x, breakpoints):
     cost = 0

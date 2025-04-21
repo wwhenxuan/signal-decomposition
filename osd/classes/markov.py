@@ -1,14 +1,15 @@
-''' Markov Process Signal
+"""Markov Process Signal
 
 This module contains the class for a signal defined as a Markov Process over
 discrete values
 
 Author: Bennet Meyers
-'''
+"""
 
 from scipy import sparse
 import numpy as np
 from osd.classes.component import Component
+
 
 class MarkovChain(Component):
 
@@ -35,6 +36,7 @@ class MarkovChain(Component):
     def _get_cost(self):
         states = self.states
         P = self.P
+
         def cost(x):
             boolean_state_matrix = np.zeros((len(states), len(x)), dtype=bool)
             for ix, s in enumerate(states):
@@ -49,9 +51,8 @@ class MarkovChain(Component):
                 end = state_indices[ix + 1]
                 c += -np.log(P[start, end])
             return c
+
         return cost
-
-
 
     def prox_op(self, v, weight, rho, use_set=None, prox_weights=None):
         mu = rho / 2 / weight
@@ -70,19 +71,18 @@ class MarkovChain(Component):
                 trajectories[:, ix] = np.copy(self.states)
             else:
                 # size of traj_mat is (num_states x num_states)
-                traj_mat = (np.tile(mu * distances[:, ix], num_states).reshape(
-                    (num_states, -1), order='F')
-                            + np.tile(costs, num_states).reshape(
-                            (num_states, -1)))
+                traj_mat = np.tile(mu * distances[:, ix], num_states).reshape(
+                    (num_states, -1), order="F"
+                ) + np.tile(costs, num_states).reshape((num_states, -1))
                 non_zero = self.P != 0
                 traj_mat[non_zero] += -np.log(self.P[non_zero])
                 traj_mat[~non_zero] = np.inf
                 costs = np.min(traj_mat, axis=1)
                 min_paths = np.argmin(traj_mat, axis=1)
-                last_traj = np.copy(trajectories[:, ix + 1:])
+                last_traj = np.copy(trajectories[:, ix + 1 :])
                 trajectories[:, ix] = self.states
                 for i in range(num_states):
-                    trajectories[i, ix + 1:] = last_traj[min_paths[i], :]
+                    trajectories[i, ix + 1 :] = last_traj[min_paths[i], :]
         min_ix = np.argmin(costs)
         x = trajectories[min_ix]
         return x

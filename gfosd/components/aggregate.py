@@ -2,6 +2,7 @@ import numpy as np
 import scipy.sparse as sp
 from gfosd.components.base_graph_class import GraphComponent
 
+
 class Aggregate(GraphComponent):
     def __init__(self, component_list, *args, **kwargs):
         self._gf_list = component_list
@@ -34,12 +35,10 @@ class Aggregate(GraphComponent):
         # model. The default is to use the first one, unless a helper variable
         # was removed, and then we use the Px from that component.
         self._Px = self._gf_list[g_ix]._Px
-        self._Pz = sp.block_diag([
-            c._Pz for c in self._gf_list
-        ])
+        self._Pz = sp.block_diag([c._Pz for c in self._gf_list])
         # same logic as above but for q
-        qx = self._gf_list[g_ix]._q[:self._gf_list[g_ix].x_size]
-        qz = np.concatenate([c._q[self._gf_list[g_ix].x_size:] for c in self._gf_list])
+        qx = self._gf_list[g_ix]._q[: self._gf_list[g_ix].x_size]
+        qz = np.concatenate([c._q[self._gf_list[g_ix].x_size :] for c in self._gf_list])
         self._q = np.concatenate([qx, qz])
         self._make_r()
         self._gx = self._make_gx()
@@ -52,9 +51,7 @@ class Aggregate(GraphComponent):
         self._z_size = np.sum([c.z_size for c in self._gf_list])
 
     def _make_P(self):
-        self._Pz = sp.block_diag([
-            c._Pz for c in self._gf_list
-        ])
+        self._Pz = sp.block_diag([c._Pz for c in self._gf_list])
 
     def _make_r(self):
         self._r = np.sum([c._r for c in self._gf_list])
@@ -70,9 +67,7 @@ class Aggregate(GraphComponent):
     def _make_gz(self):
         # print([c._gz for c in self._gf_list])
         gz = []
-        z_lengths = [
-            entry.z_size for entry in self._gf_list
-        ]
+        z_lengths = [entry.z_size for entry in self._gf_list]
         # print(z_lengths)
         breakpoints = np.cumsum(np.r_[[0], z_lengths])
         # print(breakpoints)
@@ -80,10 +75,12 @@ class Aggregate(GraphComponent):
             pointer = 0
             for d in component._gz:
                 if isinstance(d, dict):
-                    z_start, z_end = d['range']
+                    z_start, z_end = d["range"]
                     new_d = d.copy()
-                    new_d['range'] = (breakpoints[ix] + z_start,
-                                      breakpoints[ix] + z_end)
+                    new_d["range"] = (
+                        breakpoints[ix] + z_start,
+                        breakpoints[ix] + z_end,
+                    )
                     gz.append(new_d)
                 else:
                     pointer += component._z_size
@@ -93,9 +90,7 @@ class Aggregate(GraphComponent):
         self._A = sp.bmat([[c._A] for c in self._gf_list])
 
     def _make_B(self):
-        self._B = sp.block_diag([
-            c._B for c in self._gf_list
-        ])
+        self._B = sp.block_diag([c._B for c in self._gf_list])
 
     def _make_c(self):
         self._c = np.concatenate([c._c for c in self._gf_list])

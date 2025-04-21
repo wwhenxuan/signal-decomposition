@@ -1,4 +1,4 @@
-''' One-Jump Component
+"""One-Jump Component
 
 This module contains the class for a signal that is allowed to have exactly one
 change in value or "jump". The jump is chosen to minimize the total variance of
@@ -11,19 +11,28 @@ size of the jump that will be detected by the component, both in terms of the
 absolute value of the change and the number of points included in change.
 
 Author: Bennet Meyers
-'''
+"""
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from osd.classes.component import Component
 
+
 class OneJump(Component):
-    def __init__(self, start_val=None, end_val=None, min_fraction=None,
-                 down_only=False, up_only=False, use_set=None, **kwargs):
+    def __init__(
+        self,
+        start_val=None,
+        end_val=None,
+        min_fraction=None,
+        down_only=False,
+        up_only=False,
+        use_set=None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.start_val = start_val
-        self.end_val = end_val # TODO: add this to prox op
+        self.end_val = end_val  # TODO: add this to prox op
         self.min_fraction = min_fraction
         self.down_only = down_only
         self.up_only = up_only
@@ -53,19 +62,18 @@ class OneJump(Component):
             x_no_jump = mu * np.ones_like(v)
         else:
             x_no_jump = self.start_val * np.ones_like(v)
-        cost_no_jump = (rho / 2) * np.sum(
-            np.power(v[u_s] - x_no_jump[u_s], 2))
-        results, best_ix = find_jump(v, min_fraction=self.min_fraction,
-                                     use_set=self.use_set)
+        cost_no_jump = (rho / 2) * np.sum(np.power(v[u_s] - x_no_jump[u_s], 2))
+        results, best_ix = find_jump(
+            v, min_fraction=self.min_fraction, use_set=self.use_set
+        )
         x_jump = np.ones_like(v)
         if self.start_val is None:
-            x_jump[:best_ix] = results.loc[best_ix]['mu1']
+            x_jump[:best_ix] = results.loc[best_ix]["mu1"]
         else:
             x_jump[:best_ix] = self.start_val
-        x_jump[best_ix:] = results.loc[best_ix]['mu2']
+        x_jump[best_ix:] = results.loc[best_ix]["mu2"]
         # print(mu, results.loc[best_ix]['mu1'], results.loc[best_ix]['mu2'])
-        cost_with_jump = weight + (rho / 2) * np.sum(
-            np.power(v - x_jump, 2)[u_s])
+        cost_with_jump = weight + (rho / 2) * np.sum(np.power(v - x_jump, 2)[u_s])
         if self.down_only and x_jump[-1] > x_jump[0]:
             cost_with_jump = np.inf
         if self.up_only and x_jump[-1] < x_jump[0]:
@@ -101,25 +109,23 @@ def find_jump(signal, min_fraction=None, use_set=None, prox_counts=None):
     var_left = np.zeros_like(cum_sum_sq_left)
     var_right = np.zeros_like(cum_sum_sq_right)
     np.divide(cum_sum_left, denoms, out=mu_left, where=denoms != 0)
-    np.divide(cum_sum_right, denoms[::-1], out=mu_right,
-              where=denoms[::-1] != 0)
+    np.divide(cum_sum_right, denoms[::-1], out=mu_right, where=denoms[::-1] != 0)
     np.divide(cum_sum_sq_left, denoms, out=var_left, where=denoms != 0)
-    np.divide(cum_sum_sq_right, denoms[::-1],
-              out=var_right, where=denoms[::-1] != 0)
+    np.divide(cum_sum_sq_right, denoms[::-1], out=var_right, where=denoms[::-1] != 0)
     vls = ~np.isnan(mu_left)
     var_left[vls] -= np.power(mu_left[vls], 2)
     vrs = ~np.isnan(mu_right)
     var_right[vrs] -= np.power(mu_right[vrs], 2)
-    results = pd.DataFrame(data={
-        'mu1': mu_left, 'var1': var_left, 'mu2': mu_right, 'var2': var_right
-    })
+    results = pd.DataFrame(
+        data={"mu1": mu_left, "var1": var_left, "mu2": mu_right, "var2": var_right}
+    )
     if use_set is not None:
-       results.index = new_index
-    results['total_var'] = results['var1'] + results['var2']
-    results['fraction'] = np.min([denoms, N - denoms], axis=0) / N
+        results.index = new_index
+    results["total_var"] = results["var1"] + results["var2"]
+    results["fraction"] = np.min([denoms, N - denoms], axis=0) / N
     if min_fraction is None:
-        best_ix = results.index[np.argmin(results['total_var'])]
+        best_ix = results.index[np.argmin(results["total_var"])]
     else:
-        view = results[results['fraction'] >= min_fraction]
-        best_ix = view.index[np.argmin(view['total_var'].values)]
+        view = results[results["fraction"] >= min_fraction]
+        best_ix = view.index[np.argmin(view["total_var"].values)]
     return results, best_ix

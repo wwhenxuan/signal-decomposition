@@ -1,4 +1,4 @@
-''' Quad-linear component
+"""Quad-linear component
 
 This module contains the class for a signal described by a quadradic cost
 restricted to an affine set, of the form
@@ -7,7 +7,7 @@ phi(x) = (1/2) x^T P X + q^T x + r
 dom f = {x | F x = g}
 
 Author: Bennet Meyers
-'''
+"""
 
 import scipy.sparse as sp
 import numpy as np
@@ -16,8 +16,9 @@ from osd.classes.component import Component
 from osd.masking import (
     make_masked_identity_matrix,
     make_mask_matrix,
-    make_inverse_mask_matrix
+    make_inverse_mask_matrix,
 )
+
 
 class QuadLin(Component):
 
@@ -39,9 +40,7 @@ class QuadLin(Component):
         self._last_weight = None
         self._last_rho = None
         if F is not None:
-            self._internal_constraints = [
-                lambda x, T, p: F @ x == self.g
-            ]
+            self._internal_constraints = [lambda x, T, p: F @ x == self.g]
         return
 
     @property
@@ -56,6 +55,7 @@ class QuadLin(Component):
             if self.r is not None:
                 cost += self.r
             return cost
+
         return costfunc
 
     def prox_op(self, v, weight, rho, use_set=None, prox_weights=None):
@@ -91,10 +91,7 @@ class QuadLin(Component):
             M = weight * self.P + rho * temp_mat
             if self.F is not None:
                 A = sp.csc_matrix(self.F)
-                M = sp.bmat([
-                    [M, A.T],
-                    [A, None]
-                ])
+                M = sp.bmat([[M, A.T], [A, None]])
             M = M.tocsc()
             # print('factorizing matrix of size ({} x {}) with {} nnz'.format(
             #     *M.shape, M.nnz
@@ -121,7 +118,7 @@ class QuadLin(Component):
             rhs = np.r_[upper, u]
             # print(rhs.shape)
             out = c(rhs)
-            out = out[:len(v)]
+            out = out[: len(v)]
         else:
             rhs = upper
             out = c(rhs)

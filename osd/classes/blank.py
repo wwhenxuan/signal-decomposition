@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-''' Gaussian Noise Component
+"""Gaussian Noise Component
 
 This module contains the class for Gaussian Noise
 
 Author: Bennet Meyers
-'''
+"""
 
 import cvxpy as cvx
 import numpy as np
 from osd.classes.component import Component
+
 
 class Blank(Component):
 

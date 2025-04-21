@@ -2,6 +2,7 @@ import scipy.sparse as sp
 import numpy as np
 from gfosd.components.base_graph_class import GraphComponent
 
+
 class FirstValEqual(GraphComponent):
     def __init__(self, value=0, *args, **kwargs):
         self._first_val = value
@@ -13,21 +14,22 @@ class FirstValEqual(GraphComponent):
         super()._make_A()
         super()._make_B()
         super()._make_c()
-        self._A = sp.bmat([
-            [self._A.tocsr()[0]],
-            [sp.dok_matrix((1, self._A.shape[1]))]
-        ])
+        self._A = sp.bmat(
+            [[self._A.tocsr()[0]], [sp.dok_matrix((1, self._A.shape[1]))]]
+        )
 
     def _make_B(self):
-        self._B = sp.bmat([
-            [self._B.tocsr()[0]],
-            [sp.coo_matrix(([1], ([0], [0])), shape=(1, self._B.shape[1]))]
-        ])
+        self._B = sp.bmat(
+            [
+                [self._B.tocsr()[0]],
+                [sp.coo_matrix(([1], ([0], [0])), shape=(1, self._B.shape[1]))],
+            ]
+        )
 
     def _make_c(self):
-        self._c = np.concatenate([np.atleast_1d(self._c[0]),
-                                  [self._first_val]])
-        
+        self._c = np.concatenate([np.atleast_1d(self._c[0]), [self._first_val]])
+
+
 class LastValEqual(GraphComponent):
     def __init__(self, value=0, *args, **kwargs):
         self._last_val = value
@@ -39,20 +41,25 @@ class LastValEqual(GraphComponent):
         super()._make_A()
         super()._make_B()
         super()._make_c()
-        self._A = sp.bmat([
-           [self._A.tocsr()[-1]],
-            [sp.dok_matrix((1, self._A.shape[1]))]
-        ])
+        self._A = sp.bmat(
+            [[self._A.tocsr()[-1]], [sp.dok_matrix((1, self._A.shape[1]))]]
+        )
 
     def _make_B(self):
-        self._B = sp.bmat([
-           [self._B.tocsr()[-1]],
-            [sp.coo_matrix(([1], ([0], [self._B.shape[1]-1])), shape=(1, self._B.shape[1]))]
-        ])
+        self._B = sp.bmat(
+            [
+                [self._B.tocsr()[-1]],
+                [
+                    sp.coo_matrix(
+                        ([1], ([0], [self._B.shape[1] - 1])),
+                        shape=(1, self._B.shape[1]),
+                    )
+                ],
+            ]
+        )
 
     def _make_c(self):
-        self._c = np.concatenate([np.atleast_1d(self._c[-1]),
-                                  [self._last_val]])
+        self._c = np.concatenate([np.atleast_1d(self._c[-1]), [self._last_val]])
 
 
 class ValsEqual(GraphComponent):
@@ -67,21 +74,34 @@ class ValsEqual(GraphComponent):
         super()._make_A()
         super()._make_B()
         super()._make_c()
-        self._A = sp.bmat([
-           [self._A.tocsr()[-1]],
-            [sp.dok_matrix((len(self.indices), self._A.shape[1]))]
-        ])
+        self._A = sp.bmat(
+            [
+                [self._A.tocsr()[-1]],
+                [sp.dok_matrix((len(self.indices), self._A.shape[1]))],
+            ]
+        )
 
     def _make_B(self):
-        self._B = sp.bmat([
-            [self._B.tocsr()[-1]], #XXXXX got to here! need to update this matrix generating function to identify all indices that are to be set equal
-            [sp.coo_matrix(([1], ([0], [self._B.shape[1]-1])), shape=(len(self.indices), self._B.shape[1]))]
-        ])
+        self._B = sp.bmat(
+            [
+                [
+                    self._B.tocsr()[-1]
+                ],  # XXXXX got to here! need to update this matrix generating function to identify all indices that are to be set equal
+                [
+                    sp.coo_matrix(
+                        ([1], ([0], [self._B.shape[1] - 1])),
+                        shape=(len(self.indices), self._B.shape[1]),
+                    )
+                ],
+            ]
+        )
 
     def _make_c(self):
-        self._c = np.concatenate([np.atleast_1d(self._c[-1]),
-                                  [self.val] * len(self.indices)])
-        
+        self._c = np.concatenate(
+            [np.atleast_1d(self._c[-1]), [self.val] * len(self.indices)]
+        )
+
+
 class AverageEqual(GraphComponent):
     def __init__(self, value=0, period=None, *args, **kwargs):
         self._avg_val = value
@@ -108,10 +128,7 @@ class AverageEqual(GraphComponent):
             super()._make_A()
             super()._make_B()
             super()._make_c()
-            self._A = sp.bmat([
-                [self._A],
-                [sp.dok_matrix((1, self._A.shape[1]))]
-            ])
+            self._A = sp.bmat([[self._A], [sp.dok_matrix((1, self._A.shape[1]))]])
 
     def _make_B(self):
         if self._diff == 0:
@@ -121,10 +138,9 @@ class AverageEqual(GraphComponent):
                 sum_len = self.z_size
             else:
                 sum_len = self._period
-            self._B = sp.bmat([
-                [self._B],
-                [sp.csr_matrix(np.ones(sum_len), shape=(1, self.z_size))]
-            ])
+            self._B = sp.bmat(
+                [[self._B], [sp.csr_matrix(np.ones(sum_len), shape=(1, self.z_size))]]
+            )
 
     def _make_c(self):
         if self._diff == 0:
@@ -138,8 +154,10 @@ class AverageEqual(GraphComponent):
                 sum_len = self.z_size
             else:
                 sum_len = self._period
-            self._c = np.concatenate([np.atleast_1d(self._c),
-                                      [sum_len * self._avg_val]])
+            self._c = np.concatenate(
+                [np.atleast_1d(self._c), [sum_len * self._avg_val]]
+            )
+
 
 class NoCurvature(GraphComponent):
     def __init__(self, *args, **kwargs):
@@ -152,22 +170,23 @@ class NoCurvature(GraphComponent):
         super()._make_A()
         super()._make_B()
         super()._make_c()
-        self._A = sp.bmat([
-            [self._A],
-            [sp.dok_matrix((self.z_size, self._A.shape[1]))]
-        ])
+        self._A = sp.bmat([[self._A], [sp.dok_matrix((self.z_size, self._A.shape[1]))]])
 
     def _make_B(self):
-        self._B = sp.bmat([
-            [self._B, sp.dok_matrix((self._B.shape[0], 1))],
-            [sp.eye(self.z_size), sp.coo_matrix(
-                -1 * np.ones(self.z_size).reshape((-1,1))
-            )]
-        ])
+        self._B = sp.bmat(
+            [
+                [self._B, sp.dok_matrix((self._B.shape[0], 1))],
+                [
+                    sp.eye(self.z_size),
+                    sp.coo_matrix(-1 * np.ones(self.z_size).reshape((-1, 1))),
+                ],
+            ]
+        )
 
     def _make_c(self):
         self._c = np.concatenate([self._c, np.zeros(self.z_size)])
         self._z_size += 1
+
 
 class NoSlope(GraphComponent):
     def __init__(self, *args, **kwargs):
@@ -180,7 +199,8 @@ class NoSlope(GraphComponent):
     def _make_A(self):
         T = self._T
         m1 = sp.eye(m=T - 1, n=T, k=0)
-        m2 = sp.coo_matrix((-1 * np.ones(T-1),
-                            (np.arange(T-1), T-1 * np.ones(T-1))),
-                           shape=(T-1, T))
+        m2 = sp.coo_matrix(
+            (-1 * np.ones(T - 1), (np.arange(T - 1), T - 1 * np.ones(T - 1))),
+            shape=(T - 1, T),
+        )
         self._A = m1 + m2

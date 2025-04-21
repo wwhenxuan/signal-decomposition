@@ -1,8 +1,5 @@
 from osd.classes.mean_square_small import MeanSquareSmall
-from osd.classes.smooth_second import (
-    SmoothSecondDifference,
-    SmoothSecondDiffPeriodic
-)
+from osd.classes.smooth_second import SmoothSecondDifference, SmoothSecondDiffPeriodic
 from osd.classes.smooth_first import SmoothFirstDifference
 from osd.classes.norm1_first import SparseFirstDiffConvex
 from osd.classes.norm1_second import SparseSecondDiffConvex
@@ -19,5 +16,5 @@ from osd.classes.constant import Constant, ConstantChunks
 from osd.classes.quad_lin import QuadLin
 from osd.classes.time_smooth_entry_close import (
     TimeSmoothEntryClose,
-    TimeSmoothPeriodicEntryClose
+    TimeSmoothPeriodicEntryClose,
 )

@@ -8,7 +8,7 @@ def make_changepoint_basic():
     true[msk] += 1
     msk = np.logical_and(np.arange(1000) > 750, (np.arange(1000) // 100) % 2 == 0)
     true[msk] += 1
-    noise = np.random.randn(1000) * .15
+    noise = np.random.randn(1000) * 0.15
     y = true + noise
     return y, np.c_[noise, true].T
 
@@ -17,7 +17,9 @@ def make_changepoint_random_drop():
     bcd_y, bcd_X_real = make_changepoint_basic()
     indices_full = list(range(len(bcd_X_real[1])))
     # select 20% randomly
-    indices_20perc = np.random.choice(indices_full, int(.2 * len(indices_full)), replace=False)
+    indices_20perc = np.random.choice(
+        indices_full, int(0.2 * len(indices_full)), replace=False
+    )
     bcd_y_80perc = bcd_y.copy()
     bcd_y_80perc[indices_20perc] = np.nan
     return bcd_y_80perc, bcd_X_real
@@ -30,5 +32,5 @@ def make_changepoint_chunk_drop():
     indices_chunks_start = np.random.choice(indices_full, 5, replace=False)
     bcd_y_chunks = bcd_y.copy()
     for e in indices_chunks_start:
-        bcd_y_chunks[e:e + 25] = np.nan
+        bcd_y_chunks[e : e + 25] = np.nan
     return bcd_y_chunks, bcd_X_real
